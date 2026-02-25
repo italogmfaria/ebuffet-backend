@@ -1,0 +1,3 @@
+ALTER TABLE reserva DROP COLUMN IF EXISTS observacoes;
+ALTER TABLE reserva ADD COLUMN titulo VARCHAR(255);
+ALTER TABLE reserva ADD COLUMN descricao TEXT;

@@ -1,0 +1,15 @@
+package com.ebuffet;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableScheduling
+public class EbuffetBackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EbuffetBackendApplication.class, args);
+	}
+
+}

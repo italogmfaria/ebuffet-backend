@@ -1,0 +1,2 @@
+ALTER TABLE comida ADD COLUMN imagem_url VARCHAR(500);
+ALTER TABLE servico ADD COLUMN imagem_url VARCHAR(500);

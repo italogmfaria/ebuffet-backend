@@ -1,0 +1,3 @@
+
+ALTER TABLE arquivo DROP CONSTRAINT IF EXISTS fk_arquivo_buffet;
+ALTER TABLE arquivo DROP COLUMN IF EXISTS buffet_id;
