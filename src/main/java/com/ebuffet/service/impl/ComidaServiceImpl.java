@@ -1,5 +1,6 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.comida.ComidaRequest;
 import com.ebuffet.controller.dto.comida.ComidaResponse;
 import com.ebuffet.controller.exceptions.ForbiddenException;
@@ -29,17 +30,20 @@ public class ComidaServiceImpl implements ComidaService {
     private final ComidaRepository comidaRepo;
     private final BuffetRepository buffetRepo;
     private final ArquivoService arquivoService;
+    private final SingleBuffetProperties singleBuffetProperties;
 
-    public ComidaServiceImpl(ComidaRepository comidaRepo, BuffetRepository buffetRepo, ArquivoService arquivoService) {
+    public ComidaServiceImpl(ComidaRepository comidaRepo, BuffetRepository buffetRepo,
+                             ArquivoService arquivoService, SingleBuffetProperties singleBuffetProperties) {
         this.comidaRepo = comidaRepo;
         this.buffetRepo = buffetRepo;
         this.arquivoService = arquivoService;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @Transactional
     @Override
-    public ComidaResponse create(Long buffetId, ComidaRequest req, @Nullable MultipartFile imagem, Long ownerId) {
-        Buffet b = loadAndCheckOwner(buffetId, ownerId);
+    public ComidaResponse create(ComidaRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+        Buffet b = loadAndCheckOwner(ownerId);
 
         Comida c = new Comida();
         c.setBuffet(b);
@@ -70,10 +74,10 @@ public class ComidaServiceImpl implements ComidaService {
 
     @Transactional
     @Override
-    public Page<ComidaResponse> listByBuffet(Long buffetId,
-                                             @Nullable EnumCategoria categoria,
+    public Page<ComidaResponse> listByBuffet(@Nullable EnumCategoria categoria,
                                              @Nullable EnumStatus status,
                                              Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Page<Comida> page;
         if (categoria != null) {
             page = comidaRepo.findByBuffetIdAndCategoria(buffetId, categoria, pageable);
@@ -87,8 +91,8 @@ public class ComidaServiceImpl implements ComidaService {
 
     @Transactional
     @Override
-    public ComidaResponse update(Long buffetId, Long comidaId, ComidaRequest req, @Nullable MultipartFile imagem, Long ownerId) {
-        Buffet b = loadAndCheckOwner(buffetId, ownerId);
+    public ComidaResponse update(Long comidaId, ComidaRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+        Buffet b = loadAndCheckOwner(ownerId);
 
         Comida c = comidaRepo.findById(comidaId)
                 .orElseThrow(() -> new NotFoundException("Comida não encontrada"));
@@ -115,8 +119,8 @@ public class ComidaServiceImpl implements ComidaService {
 
     @Transactional
     @Override
-    public void delete(Long buffetId, Long comidaId, Long ownerId, boolean softDelete) {
-        Buffet b = loadAndCheckOwner(buffetId, ownerId);
+    public void delete(Long comidaId, Long ownerId, boolean softDelete) {
+        Buffet b = loadAndCheckOwner(ownerId);
 
         Comida c = comidaRepo.findById(comidaId)
                 .orElseThrow(() -> new NotFoundException("Comida não encontrada"));
@@ -132,8 +136,8 @@ public class ComidaServiceImpl implements ComidaService {
         }
     }
 
-    @Override
-    public Buffet loadAndCheckOwner(Long buffetId, Long ownerId) {
+    private Buffet loadAndCheckOwner(Long ownerId) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Buffet b = buffetRepo.findById(buffetId)
                 .orElseThrow(() -> new NotFoundException("Buffet não encontrado"));
         if (!b.getOwner().getId().equals(ownerId)) {

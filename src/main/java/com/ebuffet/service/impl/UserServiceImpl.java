@@ -1,11 +1,11 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.register.RegisterRequest;
 import com.ebuffet.controller.dto.user.UpdateUserRequest;
 import com.ebuffet.controller.exceptions.ConflictException;
 import com.ebuffet.controller.exceptions.NotFoundException;
 import com.ebuffet.models.Arquivo;
-import com.ebuffet.models.Buffet;
 import com.ebuffet.models.User;
 import com.ebuffet.models.enums.EnumStatus;
 import com.ebuffet.models.enums.EnumTipoArquivo;
@@ -40,29 +40,34 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ArquivoService arquivoService;
 
+    @Autowired
+    private SingleBuffetProperties singleBuffetProperties;
+
     @Transactional
     @Override
     public User register(RegisterRequest req) {
-        if (!buffetRepository.existsById(req.getBuffetId())) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+        if (!buffetRepository.existsById(buffetId)) {
             throw new IllegalArgumentException("Buffet não encontrado");
         }
 
         User u = buildUserFromRequest(req);
         u.setRole(EnumUserRole.CLIENTE);
-        u.setBuffetId(req.getBuffetId());
+        u.setBuffetId(buffetId);
         return repository.save(u);
     }
 
     @Transactional
     @Override
     public User registerBuffet(RegisterRequest req) {
-        if (!buffetRepository.existsById(req.getBuffetId())) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+        if (!buffetRepository.existsById(buffetId)) {
             throw new IllegalArgumentException("Buffet não encontrado");
         }
 
         User u = buildUserFromRequest(req);
         u.setRole(EnumUserRole.BUFFET);
-        u.setBuffetId(req.getBuffetId());
+        u.setBuffetId(buffetId);
         return repository.save(u);
     }
 
@@ -70,12 +75,12 @@ public class UserServiceImpl implements UserService {
         String email = req.getEmail().trim().toLowerCase();
         String telefone = req.getTelefone() != null ? req.getTelefone().replaceAll("\\D+", "") : null;
 
-        if (repository.existsByEmailIgnoreCaseAndBuffetId(email, req.getBuffetId())) {
-            throw new ConflictException("E-mail já está em uso neste buffet.");
+        if (repository.existsByEmailIgnoreCase(email)) {
+            throw new ConflictException("E-mail já está em uso.");
         }
 
-        if (telefone != null && repository.existsByTelefoneAndBuffetId(telefone, req.getBuffetId())) {
-            throw new ConflictException("Telefone já está em uso neste buffet.");
+        if (telefone != null && repository.existsByTelefone(telefone)) {
+            throw new ConflictException("Telefone já está em uso.");
         }
 
         User u = new User();
@@ -88,23 +93,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails loadUserByUsernameAndBuffetId(String username, Long buffetId)
-            throws UsernameNotFoundException {
-
-        if (buffetId == null) {
-            return loadUserByUsername(username);
-        }
-
-        return repository.findByEmailIgnoreCaseAndBuffetId(username, buffetId)
-                .or(() -> repository.findByTelefoneAndBuffetId(username, buffetId))
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuário não encontrado neste buffet"));
-    }
-
-    @Override
-    public User findEntityByUsername(String username, Long buffetId) {
-        return repository.findByEmailIgnoreCaseAndBuffetId(username, buffetId)
-                .or(() -> repository.findByTelefoneAndBuffetId(username, buffetId))
+    public User findEntityByUsername(String username) {
+        return repository.findByEmailIgnoreCase(username)
+                .or(() -> repository.findByTelefone(username))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
     }
 
@@ -117,25 +108,21 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public User updateUser(Long userId, Long buffetId, UpdateUserRequest req, @Nullable MultipartFile foto) {
+    public User updateUser(Long userId, UpdateUserRequest req, @Nullable MultipartFile foto) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
-
-        if (!user.getBuffetId().equals(buffetId)) {
-            throw new NotFoundException("Usuário não encontrado neste buffet");
-        }
 
         String email = req.getEmail().trim().toLowerCase();
         String telefone = req.getTelefone() != null ? req.getTelefone().replaceAll("\\D+", "") : null;
 
         if (!user.getEmail().equalsIgnoreCase(email) &&
-                repository.existsByEmailIgnoreCaseAndBuffetId(email, buffetId)) {
-            throw new ConflictException("E-mail já está em uso neste buffet");
+                repository.existsByEmailIgnoreCase(email)) {
+            throw new ConflictException("E-mail já está em uso");
         }
 
         if (telefone != null && !telefone.equals(user.getTelefone()) &&
-                repository.existsByTelefoneAndBuffetId(telefone, buffetId)) {
-            throw new ConflictException("Telefone já está em uso neste buffet");
+                repository.existsByTelefone(telefone)) {
+            throw new ConflictException("Telefone já está em uso");
         }
 
         user.setNome(req.getNome().trim());

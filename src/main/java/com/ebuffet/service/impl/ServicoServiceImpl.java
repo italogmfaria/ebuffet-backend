@@ -1,5 +1,6 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.servico.ServicoRequest;
 import com.ebuffet.controller.dto.servico.ServicoResponse;
 import com.ebuffet.controller.exceptions.ConflictException;
@@ -31,17 +32,22 @@ public class ServicoServiceImpl implements ServicoService {
     private final BuffetRepository buffetRepo;
     private final ReservaRepository reservaRepo;
     private final ArquivoService arquivoService;
+    private final SingleBuffetProperties singleBuffetProperties;
 
-    public ServicoServiceImpl(ServicoRepository servicoRepo, BuffetRepository buffetRepo, ReservaRepository reservaRepo, ArquivoService arquivoService) {
+    public ServicoServiceImpl(ServicoRepository servicoRepo, BuffetRepository buffetRepo,
+                              ReservaRepository reservaRepo, ArquivoService arquivoService,
+                              SingleBuffetProperties singleBuffetProperties) {
         this.servicoRepo = servicoRepo;
         this.buffetRepo = buffetRepo;
         this.reservaRepo = reservaRepo;
         this.arquivoService = arquivoService;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @Transactional
     @Override
-    public ServicoResponse create(Long buffetId, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+    public ServicoResponse create(ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Buffet b = buffetRepo.findById(buffetId).orElseThrow(() -> new NotFoundException("Buffet não encontrado"));
 
         Servico s = new Servico();
@@ -73,14 +79,16 @@ public class ServicoServiceImpl implements ServicoService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<ServicoResponse> listByBuffet(Long buffetId, EnumCategoria categoria, EnumStatus status, String q, Pageable pageable) {
+    public Page<ServicoResponse> listByBuffet(EnumCategoria categoria, EnumStatus status, String q, Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         return servicoRepo.findByFilters(buffetId, categoria, status, q, pageable)
                 .map(ServicoResponse::new);
     }
 
     @Transactional
     @Override
-    public ServicoResponse update(Long buffetId, Long id, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+    public ServicoResponse update(Long id, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Servico s = servicoRepo.findById(id).orElseThrow(() -> new NotFoundException("Serviço não encontrado"));
         if (!s.getBuffet().getId().equals(buffetId))
             throw new ConflictException("Serviço não pertence ao buffet informado");
@@ -104,7 +112,8 @@ public class ServicoServiceImpl implements ServicoService {
 
     @Transactional
     @Override
-    public void delete(Long buffetId, Long id, Long ownerId, boolean soft) {
+    public void delete(Long id, Long ownerId, boolean soft) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Servico s = servicoRepo.findById(id).orElseThrow(() -> new NotFoundException("Serviço não encontrado"));
         if (!s.getBuffet().getId().equals(buffetId))
             throw new ConflictException("Serviço não pertence ao buffet informado");

@@ -1,8 +1,8 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.buffet.BuffetResponse;
 import com.ebuffet.controller.exceptions.NotFoundException;
-import com.ebuffet.models.Buffet;
 import com.ebuffet.models.PasswordResetCode;
 import com.ebuffet.models.User;
 import com.ebuffet.repository.PasswordResetCodeRepository;
@@ -31,26 +31,29 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom random = new SecureRandom();
     private final BuffetService buffetService;
+    private final SingleBuffetProperties singleBuffetProperties;
 
     public PasswordRecoveryServiceImpl(UserRepository userRepository,
                                        PasswordResetCodeRepository resetCodeRepository,
                                        EmailService emailService,
                                        PasswordEncoder passwordEncoder,
-                                       BuffetService buffetService) {
+                                       BuffetService buffetService,
+                                       SingleBuffetProperties singleBuffetProperties) {
         this.userRepository = userRepository;
         this.resetCodeRepository = resetCodeRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.buffetService = buffetService;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @Transactional
     @Override
-    public void enviarCodigo(String email, Long buffetId) {
-        User user = userRepository.findByEmailIgnoreCaseAndBuffetId(email.trim().toLowerCase(), buffetId)
-                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail neste buffet."));
+    public void enviarCodigo(String email) {
+        User user = userRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail."));
 
-        BuffetResponse buffet = buffetService.get(buffetId);
+        BuffetResponse buffet = buffetService.get(singleBuffetProperties.getBuffetId());
 
         List<PasswordResetCode> codigosAnteriores = resetCodeRepository.findByUsuarioAndUtilizadoFalse(user);
         codigosAnteriores.forEach(c -> c.setUtilizado(true));
@@ -69,9 +72,9 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     }
 
     @Override
-    public boolean verificarCodigo(String email, String codigo, Long buffetId) {
-        User user = userRepository.findByEmailIgnoreCaseAndBuffetId(email.trim().toLowerCase(), buffetId)
-                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail neste buffet."));
+    public boolean verificarCodigo(String email, String codigo) {
+        User user = userRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail."));
 
         return resetCodeRepository
                 .findByUsuarioAndCodigoAndUtilizadoFalseAndExpiracaoAfter(user, codigo, LocalDateTime.now())
@@ -80,9 +83,9 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
 
     @Transactional
     @Override
-    public void redefinirSenha(String email, String codigo, String novaSenha, Long buffetId) {
-        User user = userRepository.findByEmailIgnoreCaseAndBuffetId(email.trim().toLowerCase(), buffetId)
-                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail neste buffet."));
+    public void redefinirSenha(String email, String codigo, String novaSenha) {
+        User user = userRepository.findByEmailIgnoreCase(email.trim().toLowerCase())
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado com este e-mail."));
 
         PasswordResetCode resetCode = resetCodeRepository
                 .findByUsuarioAndCodigoAndUtilizadoFalseAndExpiracaoAfter(user, codigo, LocalDateTime.now())

@@ -18,7 +18,6 @@ public class UserResponse {
     private String email;
     private String telefone;
     private EnumUserRole roles;
-    private Long buffetId;
     private String fotoUrl;
 
     public UserResponse(User user) {
@@ -27,7 +26,6 @@ public class UserResponse {
         this.email = user.getEmail();
         this.telefone = user.getTelefone();
         this.roles = user.getRole();
-        this.buffetId = user.getBuffetId();
         this.fotoUrl = (user.getFoto() != null) ? user.getFoto().getUrl() : null;
     }
 }

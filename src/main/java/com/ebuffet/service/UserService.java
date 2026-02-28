@@ -14,9 +14,7 @@ public interface UserService extends UserDetailsService {
 
     User registerBuffet(RegisterRequest req);
 
-    User findEntityByUsername(String username, Long buffetId);
+    User findEntityByUsername(String username);
 
-    UserDetails loadUserByUsernameAndBuffetId(String username, Long buffetId) throws UsernameNotFoundException;
-
-    User updateUser(Long userId, Long buffetId, UpdateUserRequest req, @Nullable MultipartFile foto);
+    User updateUser(Long userId, UpdateUserRequest req, @Nullable MultipartFile foto);
 }

@@ -27,12 +27,10 @@ public class JwtUtil {
         Date exp = new Date(now.getTime() + jwtExpirationMs);
 
         String role = user.getRole() != null ? user.getRole().name() : null;
-        Long buffetId = user.getBuffetId() != null ? user.getBuffetId() : null;
 
         return JWT.create()
                 .withSubject(user.getUsername())
                 .withClaim("role", role)
-                .withClaim("buffetId", buffetId)
                 .withIssuedAt(now)
                 .withExpiresAt(exp)
                 .sign(algorithm);
@@ -40,14 +38,6 @@ public class JwtUtil {
 
     public String getUsernameFromToken(String token) {
         return decodeToken(token).getSubject();
-    }
-
-    public Long getBuffetIdFromToken(String token) {
-        try {
-            return decodeToken(token).getClaim("buffetId").asLong();
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     public boolean validateToken(String token) {

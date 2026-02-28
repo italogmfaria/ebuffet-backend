@@ -1,11 +1,11 @@
 package com.ebuffet.controller;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.buffet.BuffetRequest;
 import com.ebuffet.controller.dto.buffet.BuffetResponse;
 import com.ebuffet.models.User;
 import com.ebuffet.service.BuffetService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,20 +15,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static com.ebuffet.utils.Constants.BUFFET_ID_HEADER;
-
 @RestController
 @RequestMapping("/api/buffets")
 public class BuffetController {
 
     private final BuffetService service;
+    private final SingleBuffetProperties singleBuffetProperties;
 
-    public BuffetController(BuffetService service) {
+    public BuffetController(BuffetService service, SingleBuffetProperties singleBuffetProperties) {
         this.service = service;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @PostMapping
-    public ResponseEntity<BuffetResponse> create(@Valid @RequestBody BuffetRequest req, @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId) {
+    public ResponseEntity<BuffetResponse> create(@Valid @RequestBody BuffetRequest req) {
         BuffetResponse created = service.create(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }

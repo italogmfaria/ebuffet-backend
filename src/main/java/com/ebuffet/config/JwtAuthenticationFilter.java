@@ -73,10 +73,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     String username = jwtUtil.getUsernameFromToken(token);
-                    Long buffetId = jwtUtil.getBuffetIdFromToken(token);
 
-                    UserDetails userDetails = userService
-                            .loadUserByUsernameAndBuffetId(username, buffetId);
+                    UserDetails userDetails = userService.loadUserByUsername(username);
 
                     List<GrantedAuthority> authorities = jwtUtil.getRoles(token).stream()
                             .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))

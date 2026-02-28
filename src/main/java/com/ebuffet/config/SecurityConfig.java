@@ -1,7 +1,5 @@
 package com.ebuffet.config;
 
-import com.ebuffet.models.enums.EnumUserRole;
-import com.ebuffet.utils.filters.BuffetContextFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -47,12 +45,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
 
-    private final BuffetContextFilter buffetContextFilter;
-
-    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtFilter,
-                          BuffetContextFilter buffetContextFilter) {
+    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
-        this.buffetContextFilter = buffetContextFilter;
     }
 
     @Bean
@@ -66,7 +60,6 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(buffetContextFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -91,7 +84,6 @@ public class SecurityConfig {
                 "Accept",
                 "Origin",
                 "ngrok-skip-browser-warning",
-                "X-Buffet-Id",
                 "X-User-Id"
         ));
         config.setExposedHeaders(List.of("Authorization", "Location"));

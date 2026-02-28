@@ -27,7 +27,4 @@ public class RegisterRequest {
     private String senha;
 
     private String telefone;
-
-    @NotNull(message = "BuffetId é obrigatório")
-    private Long buffetId;
 }

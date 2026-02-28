@@ -28,17 +28,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse login(AuthRequest request, Long buffetId) {
+    public AuthResponse login(AuthRequest request) {
         try {
-            User user = userRepository.findByEmailIgnoreCaseAndBuffetId(
-                            request.getUsername(),
-                            buffetId
-                    )
-                    .or(() -> userRepository.findByTelefoneAndBuffetId(
-                            request.getUsername(),
-                            buffetId
-                    ))
-                    .orElseThrow(() -> new AuthenticationException("Usuário não encontrado neste buffet") {});
+            User user = userRepository.findByEmailIgnoreCase(request.getUsername())
+                    .or(() -> userRepository.findByTelefone(request.getUsername()))
+                    .orElseThrow(() -> new AuthenticationException("Usuário não encontrado") {});
 
             if (!passwordEncoder.matches(request.getPassword(), user.getSenha())) {
                 throw new AuthenticationException("Credenciais inválidas") {};
@@ -53,10 +47,10 @@ public class AuthServiceImpl implements AuthService {
 
             String token = jwtUtil.generateToken(user);
 
-            return new AuthResponse(token, buffetId, user.getRole());
+            return new AuthResponse(token, user.getRole());
 
         } catch (AuthenticationException e) {
-            throw new AuthenticationException("Credenciais inválidas ou buffet incorreto") {};
+            throw new AuthenticationException("Credenciais inválidas") {};
         }
     }
 }

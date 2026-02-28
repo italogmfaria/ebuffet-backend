@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-import static com.ebuffet.utils.Constants.BUFFET_ID_HEADER;
-
 @RestController
 @RequestMapping("/api/auth/password")
 public class PasswordRecoveryController {
@@ -24,31 +22,28 @@ public class PasswordRecoveryController {
 
     @PostMapping("/forgot")
     public ResponseEntity<Map<String, String>> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequest request,
-            @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId) {
+            @Valid @RequestBody ForgotPasswordRequest request) {
 
-        passwordRecoveryService.enviarCodigo(request.getEmail(), buffetId);
+        passwordRecoveryService.enviarCodigo(request.getEmail());
         return ResponseEntity.ok(Map.of("message", "Código de recuperação enviado para o e-mail informado."));
     }
 
     @PostMapping("/verify-code")
     public ResponseEntity<Map<String, Object>> verifyCode(
-            @Valid @RequestBody VerifyCodeRequest request,
-            @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId) {
+            @Valid @RequestBody VerifyCodeRequest request) {
 
         boolean valido = passwordRecoveryService.verificarCodigo(
-                request.getEmail(), request.getCodigo(), buffetId);
+                request.getEmail(), request.getCodigo());
 
         return ResponseEntity.ok(Map.of("valido", valido));
     }
 
     @PostMapping("/reset")
     public ResponseEntity<Map<String, String>> resetPassword(
-            @Valid @RequestBody ResetPasswordRequest request,
-            @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId) {
+            @Valid @RequestBody ResetPasswordRequest request) {
 
         passwordRecoveryService.redefinirSenha(
-                request.getEmail(), request.getCodigo(), request.getNovaSenha(), buffetId);
+                request.getEmail(), request.getCodigo(), request.getNovaSenha());
 
         return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso."));
     }

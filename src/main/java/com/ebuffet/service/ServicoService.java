@@ -11,13 +11,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ServicoService {
 
-    ServicoResponse create(Long buffetId, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId);
+    ServicoResponse create(ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId);
 
     ServicoResponse get(Long id);
 
-    Page<ServicoResponse> listByBuffet(Long buffetId, EnumCategoria categoria, EnumStatus status, String q, Pageable pageable);
+    Page<ServicoResponse> listByBuffet(EnumCategoria categoria, EnumStatus status, String q, Pageable pageable);
 
-    ServicoResponse update(Long buffetId, Long id, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId);
+    ServicoResponse update(Long id, ServicoRequest req, @Nullable MultipartFile imagem, Long ownerId);
 
-    void delete(Long buffetId, Long id, Long ownerId, boolean soft);
+    void delete(Long id, Long ownerId, boolean soft);
 }

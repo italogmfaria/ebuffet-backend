@@ -1,5 +1,6 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.calendario.DatasIndisponiveisResponse;
 import com.ebuffet.controller.dto.evento.ClienteEventoUpdateRequest;
 import com.ebuffet.controller.dto.evento.EventoResponse;
@@ -30,20 +31,25 @@ public class EventoServiceImpl implements EventoService {
     private final ComidaRepository comidaRepository;
     private final ServicoRepository servicoRepository;
     private final NotificacaoService notificacaoService;
+    private final SingleBuffetProperties singleBuffetProperties;
 
-    public EventoServiceImpl(EventoRepository repository, ComidaRepository comidaRepository, ServicoRepository servicoRepository, NotificacaoService notificacaoService) {
+    public EventoServiceImpl(EventoRepository repository, ComidaRepository comidaRepository,
+                             ServicoRepository servicoRepository, NotificacaoService notificacaoService,
+                             SingleBuffetProperties singleBuffetProperties) {
         this.repository = repository;
         this.comidaRepository = comidaRepository;
         this.servicoRepository = servicoRepository;
         this.notificacaoService = notificacaoService;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public EventoResponse getById(Long buffetId, Long id) {
+    public EventoResponse getById(Long id) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ForbiddenException("Evento não pertence a este buffet");
         }
@@ -53,12 +59,12 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<EventoResponse> listByBuffet(Long buffetId,
-                                             EnumStatusEvento statusEvento,
+    public Page<EventoResponse> listByBuffet(EnumStatusEvento statusEvento,
                                              EnumStatus status,
                                              LocalDate dataEventoFrom,
                                              LocalDate dataEventoTo,
                                              Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         return repository.findByFilters(buffetId, statusEvento, status, dataEventoFrom, dataEventoTo, pageable)
                 .map(EventoResponse::new);
     }
@@ -66,10 +72,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public void delete(Long buffetId, Long id, Long ownerId, boolean soft) {
+    public void delete(Long id, Long ownerId, boolean soft) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -83,10 +90,9 @@ public class EventoServiceImpl implements EventoService {
     }
 
     @Override
-    public DatasIndisponiveisResponse getDatasIndisponiveis(Long buffetId,
-                                                               LocalDate dataInicio,
+    public DatasIndisponiveisResponse getDatasIndisponiveis(LocalDate dataInicio,
                                                                LocalDate dataFim) {
-
+        Long buffetId = singleBuffetProperties.getBuffetId();
         List<LocalDate> datas = repository.findDatasBloquedadasByBuffetId(
                         buffetId, EnumStatus.ATIVO, dataInicio, dataFim
                 ).stream()
@@ -98,11 +104,8 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<EventoResponse> listarMeusEventos(
-            Long buffetId,
-            Long clienteId,
-            Pageable pageable
-    ) {
+    public Page<EventoResponse> listarMeusEventos(Long clienteId, Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         return repository
                 .findMeusEventos(buffetId, clienteId, EnumStatus.ATIVO, pageable)
                 .map(EventoResponse::new);
@@ -110,10 +113,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse updateValor(Long buffetId, Long id, BigDecimal valor, Long ownerId) {
+    public EventoResponse updateValor(Long id, BigDecimal valor, Long ownerId) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -149,10 +153,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse concluirEvento(Long buffetId, Long id, Long ownerId) {
+    public EventoResponse concluirEvento(Long id, Long ownerId) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -176,10 +181,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse cancelarEvento(Long buffetId, Long id, Long ownerId) {
+    public EventoResponse cancelarEvento(Long id, Long ownerId) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -210,10 +216,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse reverterCancelamentoEvento(Long buffetId, Long id, Long ownerId) {
+    public EventoResponse reverterCancelamentoEvento(Long id, Long ownerId) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -245,10 +252,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse cancelarEventoPeloCliente(Long buffetId, Long id, Long clienteId) {
+    public EventoResponse cancelarEventoPeloCliente(Long id, Long clienteId) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }
@@ -290,10 +298,11 @@ public class EventoServiceImpl implements EventoService {
 
     @Transactional
     @Override
-    public EventoResponse atualizarEventoPeloCliente(Long buffetId, Long id, Long clienteId, ClienteEventoUpdateRequest req) {
+    public EventoResponse atualizarEventoPeloCliente(Long id, Long clienteId, ClienteEventoUpdateRequest req) {
         Evento e = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Evento não encontrado"));
 
+        Long buffetId = singleBuffetProperties.getBuffetId();
         if (!e.getBuffet().getId().equals(buffetId)) {
             throw new ConflictException("Evento não pertence ao buffet informado");
         }

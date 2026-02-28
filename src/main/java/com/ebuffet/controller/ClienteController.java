@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.ebuffet.utils.Constants.BUFFET_ID_HEADER;
 import static com.ebuffet.utils.Constants.USER_ID_HEADER;
 
 @Tag(name = "Clientes", description = "API para gerenciamento de perfil de clientes")
@@ -31,10 +30,7 @@ public class ClienteController {
         this.userService = userService;
     }
 
-    @Operation(
-        summary = "Atualizar perfil do cliente",
-        description = "Permite que o cliente autenticado atualize seus dados pessoais como nome, e-mail, telefone e foto de perfil."
-    )
+    @Operation(summary = "Atualizar perfil do cliente")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso",
             content = @Content(schema = @Schema(implementation = UserResponse.class))),
@@ -44,16 +40,11 @@ public class ClienteController {
     })
     @PutMapping(value = "/me", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> updateProfile(
-            @Parameter(description = "ID do usuário autenticado", required = true, hidden = true)
             @RequestHeader(value = USER_ID_HEADER) Long userId,
-            @Parameter(description = "ID do buffet", required = true, hidden = true)
-            @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId,
-            @Parameter(description = "Novos dados do cliente", required = true)
             @Valid @RequestPart("cliente") UpdateUserRequest req,
-            @Parameter(description = "Foto de perfil do cliente (opcional, máximo 5MB)")
             @RequestPart(value = "foto", required = false) MultipartFile foto
     ) {
-        User user = userService.updateUser(userId, buffetId, req, foto);
+        User user = userService.updateUser(userId, req, foto);
         return ResponseEntity.ok(new UserResponse(user));
     }
 }

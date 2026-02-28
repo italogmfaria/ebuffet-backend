@@ -13,33 +13,31 @@ import java.time.LocalDate;
 
 public interface EventoService {
 
-    EventoResponse getById(Long buffetId, Long id);
+    EventoResponse getById(Long id);
 
-    Page<EventoResponse> listByBuffet(Long buffetId,
-                                      EnumStatusEvento statusEvento,
+    Page<EventoResponse> listByBuffet(EnumStatusEvento statusEvento,
                                       EnumStatus status,
                                       LocalDate dataEventoFrom,
                                       LocalDate dataEventoTo,
                                       Pageable pageable);
 
-    void delete(Long buffetId, Long id, Long ownerId, boolean soft);
+    void delete(Long id, Long ownerId, boolean soft);
 
-    DatasIndisponiveisResponse getDatasIndisponiveis(Long buffetId,
-                                                        LocalDate dataInicio,
+    DatasIndisponiveisResponse getDatasIndisponiveis(LocalDate dataInicio,
                                                         LocalDate dataFim);
 
-    Page<EventoResponse> listarMeusEventos(Long buffetId, Long clienteId, Pageable pageable);
+    Page<EventoResponse> listarMeusEventos(Long clienteId, Pageable pageable);
 
-    EventoResponse updateValor(Long buffetId, Long id, BigDecimal valor, Long ownerId);
+    EventoResponse updateValor(Long id, BigDecimal valor, Long ownerId);
 
-    EventoResponse concluirEvento(Long buffetId, Long id, Long ownerId);
+    EventoResponse concluirEvento(Long id, Long ownerId);
 
-    EventoResponse cancelarEvento(Long buffetId, Long id, Long ownerId);
+    EventoResponse cancelarEvento(Long id, Long ownerId);
 
-    EventoResponse reverterCancelamentoEvento(Long buffetId, Long id, Long ownerId);
+    EventoResponse reverterCancelamentoEvento(Long id, Long ownerId);
 
-    EventoResponse atualizarEventoPeloCliente(Long buffetId, Long id, Long clienteId, ClienteEventoUpdateRequest req);
+    EventoResponse atualizarEventoPeloCliente(Long id, Long clienteId, ClienteEventoUpdateRequest req);
 
-    EventoResponse cancelarEventoPeloCliente(Long buffetId, Long id, Long clienteId);
+    EventoResponse cancelarEventoPeloCliente(Long id, Long clienteId);
 
 }

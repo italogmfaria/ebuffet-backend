@@ -13,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import static com.ebuffet.utils.Constants.BUFFET_ID_HEADER;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -28,9 +26,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest request,
-                              @RequestHeader(value = BUFFET_ID_HEADER) Long buffetId) {
-        return authService.login(request, buffetId);
+    public AuthResponse login(@RequestBody AuthRequest request) {
+        return authService.login(request);
     }
 
     @PostMapping("/register")

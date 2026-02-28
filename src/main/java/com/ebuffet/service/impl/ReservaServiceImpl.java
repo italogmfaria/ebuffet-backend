@@ -1,5 +1,6 @@
 package com.ebuffet.service.impl;
 
+import com.ebuffet.config.SingleBuffetProperties;
 import com.ebuffet.controller.dto.endereco.EnderecoRequest;
 import com.ebuffet.controller.dto.reserva.AprovarReservaRequest;
 import com.ebuffet.controller.dto.reserva.ReservaRequest;
@@ -34,8 +35,13 @@ public class ReservaServiceImpl implements ReservaService {
     private final ComidaRepository comidaRepo;
     private final EventoRepository eventoRepo;
     private final NotificacaoService notificacaoService;
+    private final SingleBuffetProperties singleBuffetProperties;
 
-    public ReservaServiceImpl(ReservaRepository reservaRepo, BuffetRepository buffetRepo, UserRepository userRepo, ServicoRepository servicoRepo, ComidaRepository comidaRepo, EventoRepository eventoRepo, NotificacaoService notificacaoService) {
+    public ReservaServiceImpl(ReservaRepository reservaRepo, BuffetRepository buffetRepo,
+                              UserRepository userRepo, ServicoRepository servicoRepo,
+                              ComidaRepository comidaRepo, EventoRepository eventoRepo,
+                              NotificacaoService notificacaoService,
+                              SingleBuffetProperties singleBuffetProperties) {
         this.reservaRepo = reservaRepo;
         this.buffetRepo = buffetRepo;
         this.userRepo = userRepo;
@@ -43,15 +49,18 @@ public class ReservaServiceImpl implements ReservaService {
         this.comidaRepo = comidaRepo;
         this.eventoRepo = eventoRepo;
         this.notificacaoService = notificacaoService;
+        this.singleBuffetProperties = singleBuffetProperties;
     }
 
     @Transactional
     @Override
-    public ReservaResponse criarReserva(Long buffetId,Long clienteId, ReservaRequest req) {
+    public ReservaResponse criarReserva(Long clienteId, ReservaRequest req) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+
         User cliente = userRepo.findById(clienteId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
 
-        Buffet buffet = buffetRepo.findById(req.getBuffetId())
+        Buffet buffet = buffetRepo.findById(buffetId)
                 .orElseThrow(() -> new NotFoundException("Buffet não encontrado"));
 
         boolean dataBloqueada = eventoRepo.existsDataBloqueada(
@@ -104,7 +113,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse atualizarReserva(Long buffetId, Long reservaId, Long clienteId, ReservaUpdateRequest req) {
+    public ReservaResponse atualizarReserva(Long reservaId, Long clienteId, ReservaUpdateRequest req) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
 
@@ -153,7 +164,7 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse aprovarReserva(Long buffetId, Long reservaId, Long ownerId, AprovarReservaRequest req) {
+    public ReservaResponse aprovarReserva(Long reservaId, Long ownerId, AprovarReservaRequest req) {
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
         if (!r.getBuffet().getOwner().getId().equals(ownerId))
@@ -190,7 +201,7 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse recusarReserva(Long buffetId, Long reservaId, Long ownerId, @Nullable String motivo) {
+    public ReservaResponse recusarReserva(Long reservaId, Long ownerId, @Nullable String motivo) {
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
         if (!r.getBuffet().getOwner().getId().equals(ownerId))
@@ -210,7 +221,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse cancelarReservaPeloBuffet(Long buffetId, Long reservaId, Long ownerId, @Nullable String motivo) {
+    public ReservaResponse cancelarReservaPeloBuffet(Long reservaId, Long ownerId, @Nullable String motivo) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
 
@@ -246,7 +259,9 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse reverterCancelamentoReserva(Long buffetId, Long reservaId, Long ownerId) {
+    public ReservaResponse reverterCancelamentoReserva(Long reservaId, Long ownerId) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
+
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
 
@@ -282,7 +297,7 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse cancelarReservaPeloCliente(Long buffetId, Long reservaId, Long clienteId, @Nullable String motivo) {
+    public ReservaResponse cancelarReservaPeloCliente(Long reservaId, Long clienteId, @Nullable String motivo) {
         Reserva r = reservaRepo.findById(reservaId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
         if (!r.getCliente().getId().equals(clienteId))
@@ -310,7 +325,7 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional
     @Override
-    public ReservaResponse atualizarCardapioEServicos(Long buffetId, Long reservaId, Long solicitanteId,
+    public ReservaResponse atualizarCardapioEServicos(Long reservaId, Long solicitanteId,
                                                       List<Long> comidaIds, List<Long> servicoIds,
                                                       boolean solicitanteEhBuffetOwner) {
         Reserva r = reservaRepo.findById(reservaId)
@@ -343,7 +358,8 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional(readOnly = true)
     @Override
-    public ReservaResponse getById(Long buffetId, Long reservaId, Long clienteId) {
+    public ReservaResponse getById(Long reservaId, Long clienteId) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Reserva r = reservaRepo.findByIdAndClienteIdAndBuffetId(reservaId, clienteId, buffetId)
                 .orElseThrow(() -> new NotFoundException("Reserva não encontrada"));
         return ReservaResponse.of(r);
@@ -351,7 +367,8 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<ReservaResponse> listarPorCliente(Long buffetId, Long clienteId, Pageable pageable) {
+    public Page<ReservaResponse> listarPorCliente(Long clienteId, Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         return reservaRepo
                 .findByClienteIdAndBuffetId(clienteId, buffetId, pageable)
                 .map(ReservaResponse::of);
@@ -359,7 +376,8 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<ReservaResponse> listarPorBuffet(Long buffetId, Long ownerId, Pageable pageable) {
+    public Page<ReservaResponse> listarPorBuffet(Long ownerId, Pageable pageable) {
+        Long buffetId = singleBuffetProperties.getBuffetId();
         Buffet b = buffetRepo.findById(buffetId).orElseThrow(() -> new NotFoundException("Buffet não encontrado"));
         if (!b.getOwner().getId().equals(ownerId)) throw new ForbiddenException("Você não é o dono deste buffet");
         return reservaRepo.findByBuffetId(buffetId, pageable).map(ReservaResponse::of);

@@ -14,12 +14,15 @@ public class AuthResponse {
 
     private String token;
 
-    private Long buffetId;
-
     private EnumUserRole role;
 
     public AuthResponse(String token) {
         this.token = token;
+    }
+
+    public AuthResponse(String token, EnumUserRole role) {
+        this.token = token;
+        this.role = role;
     }
 
 }

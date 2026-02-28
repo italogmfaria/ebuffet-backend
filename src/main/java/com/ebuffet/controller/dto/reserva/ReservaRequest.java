@@ -14,9 +14,6 @@ import java.util.List;
 @Setter
 public class ReservaRequest {
     @NotNull
-    private Long buffetId;
-
-    @NotNull
     private Integer qtdPessoas;
 
     @NotNull
